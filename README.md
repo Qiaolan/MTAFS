@@ -10,5 +10,6 @@ MTAFS is an efficient and robust method for multi-trait analysis of GWAS. It use
 ## Installation
 
 `devtools::install_github("Qiaolan/MTAFS")` or `remotes::install_github("Qiaolan/MTAFS")`
+
 `library(MTAFS)`
 
