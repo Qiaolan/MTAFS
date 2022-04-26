@@ -1,12 +1,17 @@
 Package: MTAFS
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Type: Package
+Title: An Adaptive and Robust Method for Multi-trait Analysis of Genome-wide Association Studies Using Summary Statistics
+Version: 1.0.0
+Author: Qiaolan Deng, Chi Song, Shili Lin
+Maintainer: Qiaolan Deng <deng.295@osu.edu>
+Description: Genome-wide association studies (GWAS) summary statistics are publicly available in many studies. Multi-trait analysis of summary statistics can increase statistical power and is consistent with biological mechanism. "MTAF" package provides a method to conduct multi-trait analysis of summary statistics, especially when the number of traits is large.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.0.2
+Depends: R (>= 3.6.0), base, CompQuadForm, Rfast, mvtnorm, pracma, stats
+LazyData: true
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

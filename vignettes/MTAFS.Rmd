@@ -1,0 +1,156 @@
+---
+title: "Multi-trait Analysis of GWAS Summary Statistics using 'MTAFS' package"
+author: "Qiaolan Deng, Chi Song, Shili Lin"
+
+date: "`r Sys.Date()`"
+output: 
+    rmarkdown::html_vignette
+    #bookdown::html_document2
+header-includes:
+  - \usepackage{setspace}
+  - \usepackage{bm}
+  - \usepackage{subfig}
+vignette: >
+  %\VignetteIndexEntry{Multi-trait Analysis of GWAS Summary Statistics using 'MTAFS' package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+# 1. Overview
+
+In genome-wide association studies (GWAS), the conventional single-trait analysis can lose statistical power given multiple correlated traits. Because it ignores the correlation among traits and the multiple testing correction is conservative. In contrast, multi-trait analysis methods can improve the power by exploiting the correlation among traits. Despite many existing multi-trait analysis methods using GWAS summary statistics, there are still several limitations. First, some methods cannot control type 1 error well at small significance levels. Second, many methods have inconsistent power performance under various scenarios. Third, methods relying on permutations can be time-consuming when extremely small p-values are required.
+
+**MTAFS** is an efficient and robust method for multi-trait analysis of GWAS [@deng2022adaptive]. It uses GWAS summary statistics and construct its test statistic adaptively. Compared with many existing methods, MTAFS has three compelling features making it a useful method in practice. First, MTAFS can control type 1 error well even when there are hundreds of traits and significance levels are small. Second, MTAFS has robust power performance given various settings. Third, MTAFS is an efficient method by avoiding permutations.
+
+
+This vignette provides an introduction to the multi-trait analysis of GWAS summary statistics using the 'MTAFS' package. R package 'MTAFS' implements the MTAFS method, an efficient and robust method for multi-trait analysis of GWAS. Users can find the most up-to-date versions of ‘MTAFS’ package in our GitHub webpage (https://github.com/Qiaolan/MTAFS).
+
+The package can be installed and loaded with the command:
+```{r, message=FALSE, warning=FALSE}
+#remotes::install_github("Qiaolan/MTAFS")
+#devtools::load_all("~/rPackage/MTAFS")
+library(MTAFS)
+```
+
+
+In this package, we provide the following main functions:
+
+- **MTAFS**: the main function of the package, which requires z scores from GWAS summary statistics and return p-values of MTAFS.
+- **eigenDecomp**: conducts eigendecomposition on the estimated variance-covariance matrix $\hat{\mathbf R}$ and the output is used by `MTAFS`.
+
+
+We illustrate the usage of these functions in the following sections.
+
+
+
+# 2. Introduction of Main Functions
+
+Suppose there are $N$ SNPs and $T$ traits. 
+ 
+## 2.1 `MTAFS`
+
+`MTAFS` is the function that applys the MTAFS method. It requires z scores from GWAS summary statistics and eigendecomposition results on $\hat{\mathbf R}$. The output are the p-values of MTAFS.
+
+
+The following show all the parameters in `MTAFS` function:
+
+*MTAFS(Z, eigR)*
+
+`Z` is a $N \times T$ matrix of z scores obtained from GWAS summary statistics, where its row and column correspond to SNP and trait, respectively. `eigR` is the output of `eigenDecomp` function.
+
+The output of `MTAFS` is a $N \times T$ matrix of p-values of MTAFS, where its row and column correspond to SNP and trait, respectively.
+
+Here is an example of `Z` showing five traits:
+
+```{r}
+data("simulation")
+head(simulation[,1:5])
+```
+
+
+## 2.2 `eigenDecomp`
+
+`eigenDecomp` conducts eigendecomposition on $\hat{\mathbf R}$. It calculates $q_1$, $q_2$, and $q_3$ required by MTAFS [@deng2022adaptive]. 
+
+
+The following show all the parameters in `MTAFS` function:
+
+*eigenDecomp(estR)*
+
+`estR` is the estimated variance-covariance matrix $\hat{\mathbf R}$. Linkage disequilibrium score regression [@bulik2015atlas] or sample covariance [@zhu2015meta] can be used to get $\hat{\mathbf R}$.
+
+The output of `eigenDecomp` is a list. `q` shows five number of eigenvectors which are going to be included in MTAFS. `v` shows the corresponding percentage of variance explained. `eigenD` contains all eigenvectors and eigenvectors. 
+
+
+
+# 3. A working example
+
+In this vignette, we use the simulated GWAS data for $300$ SNPs and $212$ traits for the illustration purpose.
+
+```{r}
+data("simulation")
+dim(simulation)
+```
+
+
+## 3.1 Estimate $\mathbf R$
+
+Under the null hypothesis, we assume $\mathbf Z \sim N(\mathbf 0, \mathbf R)$. For illustration, we use sample covariance to estimate $\mathbf R$, denoted as `Rhat`:
+
+```{r}
+Z <- simulation
+Rhat <- cov(Z)
+```
+
+We show its correlation heatmap:
+
+```{r, echo=FALSE}
+colnames(Rhat) <- c("1",rep("",99),"100",rep("",99),"200",rep("",10),"212")
+rownames(Rhat) <-  c("1",rep("",99),"100",rep("",99),"200",rep("",10),"212")
+```
+
+```{r, fig.cap="Figure 1: Correlation heatmap of the simulation data"}
+corrplot::corrplot(cov2cor(Rhat), method = "color", tl.pos='lt',tl.cex = 0.8, tl.col = "black", mar = c(1,1,1,1), title = "")
+```
+
+
+## 3.2 Eigendecomposition
+
+We conduct eigendecompositions on $\hat {\mathbf R}$ using `eigenDecomp`.
+
+```{r}
+eigR <- eigenDecomp(Rhat)
+str(eigR)
+```
+
+According to the output, we include the first 2, 7, 19, 44 and 212 eigenvectors to construct five levels. Also, the five numbers of eigenvectors explain $18.5\%$, $38.9\%$, $59.3\%$, $79.6\%$, and $100 \%$ of total variance.
+
+
+## 3.3 MTAFS
+
+Based on the five levels, we construct the test statistic of MTAFS and calculate the final p-values for each SNPs by `MTAFS`:
+
+```{r}
+time=proc.time()
+pMTAFS <- MTAFS(Z, eigR)
+proc.time()-time
+```
+
+It takes 18.7 seconds to analyze 300 SNPs and 212 traits.
+
+```{r}
+head(pMTAFS)
+```
+
+The output of `MTAFS` is a matrix of p-values of MTAFS, where its row corresponds to SNP. The first five columns correspond to $p_{AF(E)}$ for $E \in \{2, 7, 19, 44, 212\}$ and inside brackets are the corresponding percentage of variance explained. The last column is the p-values of MTAFS, based on which we can make a conclusion about the association of interest.
+
+# Reference
