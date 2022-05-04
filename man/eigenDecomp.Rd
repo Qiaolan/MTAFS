@@ -8,12 +8,15 @@
  Eigendecomposition on the estimated variance-covariance matrix R.
 }
 \usage{
-eigenDecomp(estR)
+eigenDecomp(estR, varExp=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{estR}{
   The variance-covariance matrix R (T by T) estimated by linkage disequillibrium score regression (recommended) or sample covariance.
+}
+  \item{varExp}{
+  A vector of user-defined percentage of variance explained, e.g., \code{varExp=c(0.2,0.5,0.9)}. The default is NULL, which selects five percentages: the percentage explained by first eigenvector (denoted as v0), 1, and three percentages evenly distributed between v0 and 1.
 }
 }
 \details{
@@ -21,8 +24,8 @@ eigenDecomp(estR)
 }
 \value{
  \code{eigenDecomp} returns a list.
-  \item{q}{Number of eigenvectors included in MTAFS. That is, \eqn{q_1,q_2,q_3}}
-  \item{v}{Percentage of variance explained by \eqn{2,q_1,q_2,q_3,T}}
+  \item{q}{Number of eigenvectors included in MTAFS.}
+  \item{v}{Percentage of variance explained by the selected eigenvectors.}
   \item{eigenD}{A list containing all eigenvectors and eigenvalues}
 }
 \references{

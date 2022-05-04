@@ -1,7 +1,7 @@
 #' @export
 # function to conduct eigendecomposition
 
-eigenDecomp <- function(estR){
+eigenDecomp <- function(estR, varExp=NULL){
 
   # conduct eigen-decomposition
   eig <- eigen(estR)
@@ -13,11 +13,25 @@ eigenDecomp <- function(estR){
   # get variance explained by eigenvalues
   percentExp <- cumsum(lambda/sum(lambda))
 
-  # percentage explained by the first two eigenvalues
-  minExp <- percentExp[2]
+  if (!is.null(varExp)) {
 
-  # set v1, v2, and v3
-  v <- seq(minExp,1,length.out = 5)
+    varExp <- sort(varExp)
+
+    if (min(percentExp) > min(varExp)) {
+      stop(paste0("The minimum percentage of variance explained is ", round(min(percentExp),2)))
+    }
+
+    v <- varExp
+
+  } else {
+    # percentage explained by the first two eigenvalues
+    minExp <- percentExp[2]
+
+    # set v1, v2, and v3
+    v <- seq(minExp,1,length.out = 5)
+  }
+
+
 
 
   # find the number of eigenvector corresponding to variance explained: q1, q2, q3

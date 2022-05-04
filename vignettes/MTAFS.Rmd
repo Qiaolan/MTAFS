@@ -1,10 +1,11 @@
 ---
-title: "Multi-trait Analysis of GWAS Summary Statistics using 'MTAFS' package"
+title: "Multi-trait Analysis of GWAS Summary Statistics Using 'MTAFS' Package"
 author: "Qiaolan Deng, Chi Song, Shili Lin"
 
 date: "`r Sys.Date()`"
 output: 
     rmarkdown::html_vignette
+    #rmarkdown::pdf_document
     #bookdown::html_document2
 header-includes:
   - \usepackage{setspace}
@@ -44,7 +45,7 @@ library(MTAFS)
 
 In this package, we provide the following main functions:
 
-- **MTAFS**: the main function of the package, which requires z scores from GWAS summary statistics and return p-values of MTAFS.
+- **MTAFS**: the flagship function of the package, which requires z scores from GWAS summary statistics and returns p-values of MTAFS.
 - **eigenDecomp**: conducts eigendecomposition on the estimated variance-covariance matrix $\hat{\mathbf R}$ and the output is used by `MTAFS`.
 
 
@@ -58,7 +59,7 @@ Suppose there are $N$ SNPs and $T$ traits.
  
 ## 2.1 `MTAFS`
 
-`MTAFS` is the function that applys the MTAFS method. It requires z scores from GWAS summary statistics and eigendecomposition results on $\hat{\mathbf R}$. The output are the p-values of MTAFS.
+`MTAFS` is the function that applys the MTAFS method. It requires z scores from GWAS summary statistics and eigendecomposition results on $\hat{\mathbf R}$ which is the output of `eigenDecomp` function. The output are the p-values of the adaptive method and MTAFS.
 
 
 The following show all the parameters in `MTAFS` function:
@@ -67,9 +68,9 @@ The following show all the parameters in `MTAFS` function:
 
 `Z` is a $N \times T$ matrix of z scores obtained from GWAS summary statistics, where its row and column correspond to SNP and trait, respectively. `eigR` is the output of `eigenDecomp` function.
 
-The output of `MTAFS` is a $N \times T$ matrix of p-values of MTAFS, where its row and column correspond to SNP and trait, respectively.
+The output of `MTAFS` is a $N \times (L+1)$ matrix of p-values, where $L$ denotes the levels of variance explained. The first $L$ columns show the p-values of the adaptive method and the last column shows the p-values of MTAFS.
 
-Here is an example of `Z` showing five traits:
+Here is an example of a partial z score matrix from a simulated dataset:
 
 ```{r}
 data("simulation")
@@ -79,22 +80,24 @@ head(simulation[,1:5])
 
 ## 2.2 `eigenDecomp`
 
-`eigenDecomp` conducts eigendecomposition on $\hat{\mathbf R}$. It calculates $q_1$, $q_2$, and $q_3$ required by MTAFS [@deng2022adaptive]. 
+`eigenDecomp` conducts eigendecomposition on $\hat{\mathbf R}$. It calculates the levels of variance expplained required by MTAFS [@deng2022adaptive]. In the default setting, we denote the proportion of variance explained by the first two eigenvalues as $v_0\%$. Then let $v_1\%$, $v_2\%$, and $v_3\%$ be the three percentages evenly distributed between $v_0\%$ and $100\%$, with $q_1$, $q_2$, and $q_3$ denoting the corresponding number of eigenvalues achieving the percent of variance explained for the first time. As a result, there are five levels of variance explained: $2, q_1,q_2,q_3,T$.
 
 
-The following show all the parameters in `MTAFS` function:
+The following show all the parameters in `eigenDecomp` function:
 
-*eigenDecomp(estR)*
+*eigenDecomp(estR, varExp=NULL)*
 
 `estR` is the estimated variance-covariance matrix $\hat{\mathbf R}$. Linkage disequilibrium score regression [@bulik2015atlas] or sample covariance [@zhu2015meta] can be used to get $\hat{\mathbf R}$.
 
-The output of `eigenDecomp` is a list. `q` shows five number of eigenvectors which are going to be included in MTAFS. `v` shows the corresponding percentage of variance explained. `eigenD` contains all eigenvectors and eigenvectors. 
+`varExp` is a vector of user-defined percentage of variance explained. The default is NULL, which implements the default setting described above.
+
+The output of `eigenDecomp` is a list. `q` shows the number of eigenvectors which are going to be included in MTAFS. `v` shows the corresponding percentage of variance explained. `eigenD` is a list containing all eigenvalues and eigenvectors. 
 
 
 
-# 3. A working example
+# 3. An Example
 
-In this vignette, we use the simulated GWAS data for $300$ SNPs and $212$ traits for the illustration purpose.
+In this vignette, we use a simulated GWAS data for $300$ SNPs and $212$ traits for the illustration purpose.
 
 ```{r}
 data("simulation")
@@ -118,12 +121,16 @@ colnames(Rhat) <- c("1",rep("",99),"100",rep("",99),"200",rep("",10),"212")
 rownames(Rhat) <-  c("1",rep("",99),"100",rep("",99),"200",rep("",10),"212")
 ```
 
-```{r, fig.cap="Figure 1: Correlation heatmap of the simulation data"}
+```{r, fig.cap="Figure 1: Correlation heatmap of the simulation data", echo=FALSE}
 corrplot::corrplot(cov2cor(Rhat), method = "color", tl.pos='lt',tl.cex = 0.8, tl.col = "black", mar = c(1,1,1,1), title = "")
 ```
 
 
 ## 3.2 Eigendecomposition
+
+
+
+### (1) The default setting
 
 We conduct eigendecompositions on $\hat {\mathbf R}$ using `eigenDecomp`.
 
@@ -132,12 +139,24 @@ eigR <- eigenDecomp(Rhat)
 str(eigR)
 ```
 
-According to the output, we include the first 2, 7, 19, 44 and 212 eigenvectors to construct five levels. Also, the five numbers of eigenvectors explain $18.5\%$, $38.9\%$, $59.3\%$, $79.6\%$, and $100 \%$ of total variance.
+According to the output, we include the first 2, 7, 19, 44 and 212 eigenvectors to construct five levels. Also, the five numbers of eigenvectors explain $18.5\%$, $38.9\%$, $59.3\%$, $79.6\%$, and $100 \%$ of total variance. `eigR$eigenD$values` include all the eigenvalues and `eigR$eigenD$vectors` include all the eigenvectors.
+
+
+### (2) User-defined setting
+
+Suppose we want to include the numbers of eigenvectors which explain $40\%$, $60\%$, and $80\%$ of the variance.
+
+```{r}
+eigR_user <- eigenDecomp(Rhat, varExp = c(0.4,0.6,0.8))
+str(eigR_user)
+```
+
+According to the output, we include the first $8$, $20$, and $45$ eigenvectors to construct three levels. Also, the three numbers of eigenvectors explain $40\%$, $60\%$, and $80 \%$ of total variance. `eigR$eigenD$values` include all the eigenvalues and `eigR$eigenD$vectors` include all the eigenvectors.
 
 
 ## 3.3 MTAFS
 
-Based on the five levels, we construct the test statistic of MTAFS and calculate the final p-values for each SNPs by `MTAFS`:
+Based on the default five levels, we construct the test statistic of MTAFS and calculate the final p-values for each SNPs by `MTAFS`:
 
 ```{r}
 time=proc.time()
@@ -145,12 +164,27 @@ pMTAFS <- MTAFS(Z, eigR)
 proc.time()-time
 ```
 
-It takes 18.7 seconds to analyze 300 SNPs and 212 traits.
+It takes about 18 seconds to analyze 300 SNPs and 212 traits.
 
 ```{r}
 head(pMTAFS)
 ```
 
-The output of `MTAFS` is a matrix of p-values of MTAFS, where its row corresponds to SNP. The first five columns correspond to $p_{AF(E)}$ for $E \in \{2, 7, 19, 44, 212\}$ and inside brackets are the corresponding percentage of variance explained. The last column is the p-values of MTAFS, based on which we can make a conclusion about the association of interest.
+The output of `MTAFS` is a matrix of p-values of the adaptive method and MTAFS, where its row corresponds to SNP. The first five columns correspond to $p_{AF(E)}$ for $E \in \{2, 7, 19, 44, 212\}$, the p-values of the adaptive method, and inside brackets are the corresponding percentage of variance explained. The last column are the p-values of MTAFS, based on which we can make a conclusion about the associations of interest.
+
+
+We can also use the three levels chosen by us. 
+
+```{r}
+pMTAFS_user <- MTAFS(Z, eigR_user)
+```
+ 
+
+```{r}
+head(pMTAFS_user)
+```
+
+Now the first three columns correspond to $p_{AF(E)}$ for $E \in \{8, 20, 45\}$, the p-values of the adaptive method, and inside brackets are the corresponding percentage of variance explained. The last column are the p-values of MTAFS, based on which we can make a conclusion about the associations of interest.
+
 
 # Reference
