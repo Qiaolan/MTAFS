@@ -4,7 +4,7 @@ Title: An Adaptive and Robust Method for Multi-trait Analysis of Genome-wide Ass
 Version: 1.0.0
 Author: Qiaolan Deng, Chi Song, Shili Lin
 Maintainer: Qiaolan Deng <deng.295@osu.edu>
-Description: Genome-wide association studies (GWAS) summary statistics are publicly available in many studies. Multi-trait analysis of summary statistics can increase statistical power and is consistent with biological mechanism. "MTAF" package provides a method to conduct multi-trait analysis of summary statistics, especially when the number of traits is large.
+Description: Genome-wide association studies (GWAS) summary statistics are publicly available in many studies. "MTAFS" package provides a method to conduct multi-trait analysis of summary statistics, especially when the number of traits is large.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -34,8 +34,8 @@ Deng, Qiaolan, Chi Song, and Shili Lin. "An Adaptive and Robust Method for Multi
 }
 \examples{
 # load a simulated dataset
-data("simulation")
-Z <- simulation
+data("gwasArea")
+Z <- gwasArea
 
 # estimate the variance-covariance matrix
 Rhat <- cov(Z)

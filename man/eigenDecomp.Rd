@@ -37,8 +37,8 @@ Deng, Q., Song, C., & Lin, S. (2022). An Adaptive and Robust Method for Multi-tr
 
 
 \examples{
-data(simulation)
-Rhat <- cov(simulation)
+data(gwasArea)
+Rhat <- cov(gwasArea)
 eigR <- eigenDecomp(estR = Rhat)
 str(eigR)
 }

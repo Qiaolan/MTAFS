@@ -1,5 +1,14 @@
 #' @export
-MTAFS <- function(Z, eigR){
+MTAFS <- function(Z, eigR, weights=NULL, snps=NULL, traits=NULL){
+
+  # slicing if needed
+  if (!is.null(snps)) {
+    Z <- Z[snps,]
+  }
+
+  if (!is.null(traits)) {
+    Z <- Z[,traits]
+  }
 
   # load values from eigendecompostion
   U <- eigR$eigenD$vectors
@@ -17,7 +26,7 @@ MTAFS <- function(Z, eigR){
   for (i in d) {
     lambda_inv <- diag(1/sqrt(lambda[1:i]))
     z_pcs <- Z %*% U[,1:i] %*% lambda_inv # transformed z scores
-    results[,j] <- af(z_pcs, weights = NULL)
+    results[,j] <- af(z_pcs, weights = weights)
     j=j+1
   }
 

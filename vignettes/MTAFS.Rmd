@@ -3,16 +3,16 @@ title: "Multi-trait Analysis of GWAS Summary Statistics Using 'MTAFS' Package"
 author: "Qiaolan Deng, Chi Song, Shili Lin"
 
 date: "`r Sys.Date()`"
-output: 
-    rmarkdown::html_vignette
-    #rmarkdown::pdf_document
-    #bookdown::html_document2
+output:
+  rmarkdown::html_vignette
+  #rmarkdown::pdf_document
+  #bookdown::html_document2
 header-includes:
   - \usepackage{setspace}
   - \usepackage{bm}
   - \usepackage{subfig}
 vignette: >
-  %\VignetteIndexEntry{Multi-trait Analysis of GWAS Summary Statistics Using 'MTAFS' package}
+  %\VignetteIndexEntry{Multi-trait Analysis of GWAS Summary Statistics Using 'MTAFS' Package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
@@ -45,7 +45,7 @@ library(MTAFS)
 
 In this package, we provide the following main functions:
 
-- **MTAFS**: the flagship function of the package, which requires z scores from GWAS summary statistics and returns p-values of MTAFS.
+  - **MTAFS**: the flagship function of the package, which requires z scores from GWAS summary statistics and returns p-values of MTAFS.
 - **eigenDecomp**: conducts eigendecomposition on the estimated variance-covariance matrix $\hat{\mathbf R}$ and the output is used by `MTAFS`.
 
 
@@ -55,8 +55,8 @@ We illustrate the usage of these functions in the following sections.
 
 #  Introduction of Main Functions
 
-Suppose there are $N$ SNPs and $T$ traits. 
- 
+Suppose there are $N$ SNPs and $T$ traits.
+
 ##  `MTAFS`
 
 `MTAFS` is the function that applys the MTAFS method and produces a matrix of p-values, described in detail below. It requires z scores from GWAS summary statistics and eigendecomposition results on $\hat{\mathbf R}$, output of the `eigenDecomp` function. The output consists of the p-values of using a specific number of eigenvalues and MTAFS.
@@ -64,17 +64,17 @@ Suppose there are $N$ SNPs and $T$ traits.
 
 The following show all the parameters in `MTAFS` function:
 
-*MTAFS(Z, eigR)*
+  *MTAFS(Z, eigR, weights = NULL, snps = NULL, traits = NULL)*
 
-`Z` is a $N \times T$ matrix of z scores obtained from GWAS summary statistics, where its row and column correspond to SNP and trait, respectively. `eigR` is the output of `eigenDecomp` function with two options: the default setting and the user-defined setting, described in detail in the next section.
+  `Z` is a $N \times T$ matrix of z scores obtained from GWAS summary statistics, where its row and column correspond to SNP and trait, respectively. `eigR` is the output of `eigenDecomp` function with two options: the default setting and the user-defined setting, described in detail in the next section. `weights` is a vector of weights for the Cauchy combination [@liu2020cauchy]. The defaul is `NULL` assuming a uniform weight. Note that the type 1 error control and power performance of non-uniform weights were not evaluated by either the original paper of Cauchy combination or our paper. `snps` is a vector of indices of SNPs of interest and we include all SNPs in `Z` by default. `traits` is a vector of indices of traits of interest and we include all traits in `Z` by default.
 
-The output of `MTAFS` is a $N \times (L+1)$ matrix of p-values, where $L$ denotes the number of levels of variance explained. The first $L$ columns show the p-values obtained by using a specific number of eigenvalues (the percentage of variance explained is in the bracket) and the last column shows the p-values of MTAFS which is obtained by the Cauchy combination [@liu2020cauchy] of the p-values of the first $L$ columns.
+The output of `MTAFS` is a $N \times (L+1)$ matrix of p-values, where $L$ denotes the number of levels of variance explained. The first $L$ columns show the p-values obtained by using a specific number of eigenvalues (the percentage of variance explained is in the bracket) and the last column shows the p-values of MTAFS which is obtained by the Cauchy combination of the p-values of the first $L$ columns.
 
-Here is an example of a partial z score matrix from a simulated dataset with five traits:
+Here is an example of a partial z score matrix from an example dataset with five traits:
 
 ```{r}
-data("simulation")
-head(simulation[,1:5])
+data("gwasArea")
+head(gwasArea[,1:5])
 ```
 
 
@@ -85,23 +85,23 @@ head(simulation[,1:5])
 
 The following show all the parameters in `eigenDecomp` function:
 
-*eigenDecomp(estR, varExp=NULL)*
+  *eigenDecomp(estR, varExp=NULL)*
 
-`estR` is the estimated variance-covariance matrix $\hat{\mathbf R}$. Linkage disequilibrium score regression [@bulik2015atlas] or sample covariance [@zhu2015meta] can be used to get $\hat{\mathbf R}$.
+  `estR` is the estimated variance-covariance matrix $\hat{\mathbf R}$. Linkage disequilibrium score regression [@bulik2015atlas] or sample covariance [@zhu2015meta] can be used to get $\hat{\mathbf R}$.
 
 `varExp` is a vector of user-defined percentage of variance explained. The default is NULL, which implements the default setting described above.
 
-The output of `eigenDecomp` is a list containing the following components: `q` the number of eigenvectors that are included in the MTAFS analysis; `v` the corresponding percentage of variance explained; `eigenD` a list containing all eigenvalues and eigenvectors. 
+The output of `eigenDecomp` is a list containing the following components: `q` the number of eigenvectors that are included in the MTAFS analysis; `v` the corresponding percentage of variance explained; `eigenD` a list containing all eigenvalues and eigenvectors.
 
 
 
 #  An Example
 
-In this vignette, we use a simulated GWAS data for $300$ SNPs and $212$ traits for the illustration purpose.
+In this vignette, we use an example GWAS summary statistics dataset consisting of $300$ SNPs and $212$ traits for the illustration purpose. The example dataset is a subset of the real dataset of 212 Area image-derived phenotypes in our paper [@deng2022adaptive].
 
 ```{r}
-data("simulation")
-dim(simulation)
+data("gwasArea")
+dim(gwasArea)
 ```
 
 
@@ -110,7 +110,7 @@ dim(simulation)
 Under the null hypothesis, we assume $\mathbf Z \sim N(\mathbf 0, \mathbf R)$. For illustration, we use sample covariance to estimate $\mathbf R$, denoted as `Rhat`:
 
 ```{r}
-Z <- simulation
+Z <- gwasArea
 Rhat <- cov(Z)
 ```
 
@@ -177,12 +177,12 @@ The output of `MTAFS` is a matrix of p-values, where its row corresponds to SNP.
 
 ###  User-defined setting
 
-We can also use the three levels in the user-defined setting. 
+We can also use the three levels in the user-defined setting.
 
 ```{r}
 pMTAFS_user <- MTAFS(Z, eigR_user)
 ```
- 
+
 
 ```{r}
 head(pMTAFS_user)
