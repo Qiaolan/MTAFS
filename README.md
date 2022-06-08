@@ -13,3 +13,6 @@ MTAFS is an efficient and robust method for multi-trait analysis of GWAS. It use
 
 `library(MTAFS)`
 
+## Vienette
+
+A vienette of MTAFS is [here](http://htmlpreview.github.io/?https://github.com/Qiaolan/MTAFS/blob/main/index.html)
